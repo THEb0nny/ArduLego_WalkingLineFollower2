@@ -7,7 +7,7 @@
 
 #include <SoftwareSerial.h>
 #include <Servo.h>
-#include "GyverPID.h" 
+#include "GyverPID.h"
 #include <TimerMs.h>
 #include <EncButton.h>
 
@@ -15,6 +15,7 @@
 #define ON_GSERVO_FOR_TEST false // Включить серво для тертирования, ON_GSERVO_CONTROL должно быть false
 
 #define PRINT_REF_RAW_LINE_SEN_DEBUG false // Отладка сырых значений с датчиков линии
+#define PRINT_REF_LINE_SEN_DEBUG false // Отладка значений серого
 #define PRINT_DT_ERR_U_DEBUG true // Печать информации о loopTime, error, u
 
 #define MOTORS_CONTROL_FUNC_DEBUG false // Отдалка функции MotorsControl
@@ -62,23 +63,23 @@
 #define LINE_S3_PIN A2 // Пин центрального правого датчика
 #define LINE_S4_PIN A3 // Пин крайнего левого датчика
 
-#define RAW_REF_WHITE_LINE_S1 30 // Значение белого крайнего левого датчика линии
-#define RAW_REF_WHITE_LINE_S2 32 // Значение белого правого датчика линии
-#define RAW_REF_WHITE_LINE_S3 33 // Значение белого левого датчика линии
-#define RAW_REF_WHITE_LINE_S4 33 // Значение белого крайнего правого датчика линии
+#define RAW_REF_WHITE_LINE_S1 28 // Значение белого крайнего левого датчика линии
+#define RAW_REF_WHITE_LINE_S2 27 // Значение белого правого датчика линии
+#define RAW_REF_WHITE_LINE_S3 30 // Значение белого левого датчика линии
+#define RAW_REF_WHITE_LINE_S4 29 // Значение белого крайнего правого датчика линии
 
-#define RAW_REF_BLACK_LINE_S1 476 // Значение чёрного крайнего левого датчика линии
-#define RAW_REF_BLACK_LINE_S2 597 // Значение чёрного центральнего левого датчика линии
-#define RAW_REF_BLACK_LINE_S3 447 // Значение чёрного правого датчика линии
-#define RAW_REF_BLACK_LINE_S4 401 // Значение чёрного крайнего правого датчика линии
+#define RAW_REF_BLACK_LINE_S1 456 // Значение чёрного крайнего левого датчика линии
+#define RAW_REF_BLACK_LINE_S2 584 // Значение чёрного центральнего левого датчика линии
+#define RAW_REF_BLACK_LINE_S3 494 // Значение чёрного правого датчика линии
+#define RAW_REF_BLACK_LINE_S4 394 // Значение чёрного крайнего правого датчика линии
 
 #define COEFF_CENTRAL_LINE_SEN 1 // Коэффициент для центральных датчиков линии
-#define COEFF_SIDE_LINE_SEN 1.75 // Коэффицент усиления для крайних датчиков линии
+#define COEFF_SIDE_LINE_SEN 2.0 // Коэффицент усиления для крайних датчиков линии
 
 unsigned long currTime, prevTime, loopTime; // Время
 
-float Kp = 1, Ki = 0, Kd = 0; // Коэффиценты регулятора
-int speed = 90; // Инициализируем переменную скорости
+float Kp = 0.8, Ki = 0, Kd = 0; // Коэффиценты регулятора
+int speed = 100; // Инициализируем переменную скорости
 
 Servo l1ServoMot, l2ServoMot, r1ServoMot, r2ServoMot; // Инициализация объектов моторов
 EncButton<EB_TICK, RESET_BTN_PIN> btn; // Инициализация объекта простой кнопки
@@ -99,7 +100,7 @@ void setup() {
   l1ServoMot.attach(SERVO_L1_PIN); l2ServoMot.attach(SERVO_L2_PIN); // Подключение левых сервомоторов
   r1ServoMot.attach(SERVO_R1_PIN); r2ServoMot.attach(SERVO_R2_PIN); // Подключение правых сервомоторов
   MotorsControl(0, 0); // При старте моторы выключаем
-  regulator.setDirection(NORMAL); // Направление регулирования (NORMAL/REVERSE)
+  regulator.setDirection(REVERSE); // Направление регулирования (NORMAL/REVERSE)
   regulator.setLimits(-200, 200); // Пределы регулятора
   while (millis() < 500); // Время после старта для возможности запуска, защита от перезагрузки и старта кода сразу
   Serial.println("Ready... press btn");
@@ -162,14 +163,17 @@ void loop() {
       Serial.print("rawRefLS1: " + String(rawRefLineS1) + "\t"); // Вывод сырых значений
       Serial.print("rawRefLS2: " + String(rawRefLineS2) + "\t");
       Serial.print("rawRefLS3: " + String(rawRefLineS3) + "\t");
-      Serial.print("rawRefLS4: " + String(rawRefLineS4) + "\t");
+      Serial.println("rawRefLS4: " + String(rawRefLineS4));
+    }
+    // Для отладки обработанных значений с датчика
+    if (PRINT_REF_LINE_SEN_DEBUG) {
       Serial.print("refLS1: " + String(refLineS1) + "\t"); // Вывод обработанных значений
       Serial.print("refLS2: " + String(refLineS2) + "\t");
       Serial.print("refLS3: " + String(refLineS3) + "\t");
       Serial.println("refLS4: " + String(refLineS4));
     }
     // Для отладки основной информации о регулировании
-    if (PRINT_REF_RAW_LINE_SEN_DEBUG) {
+    if (PRINT_DT_ERR_U_DEBUG) {
       Serial.print("loopTime: " + String(loopTime) + "\t");
       Serial.print("error: " + String(error) + "\t");
       Serial.println("u: " + String(u));
