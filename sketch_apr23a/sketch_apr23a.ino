@@ -11,12 +11,12 @@
 #include <TimerMs.h>
 #include <EncButton.h>
 
-#define ON_GSERVO_CONTROL true // Включить управление серво
-#define ON_GSERVO_FOR_TEST false // Включить серво для тертирования, ON_GSERVO_CONTROL должно быть false
+#define ON_GSERVO_CONTROL true // Включить серво
+#define ON_GSERVO_FOR_TEST false // Включить серво для тестирования, ON_GSERVO_CONTROL должно быть false
 
-#define PRINT_REF_RAW_LINE_SEN_DEBUG false // Отладка сырых значений с датчиков линии
-#define PRINT_REF_LINE_SEN_DEBUG false // Отладка значений серого
-#define PRINT_DT_ERR_U_DEBUG true // Печать информации о loopTime, error, u
+#define PRINT_REF_RAW_LINE_SEN_DEBUG false // Отладка сырых значений с датчиков линии true
+#define PRINT_REF_LINE_SEN_DEBUG false // Отладка значений серого faLSE
+#define PRINT_DT_ERR_U_DEBUG true // Печать информации о loopTime, error, u TRUE
 
 #define MOTORS_CONTROL_FUNC_DEBUG false // Отдалка функции MotorsControl
 #define MOTOR_SPEED_FUNC_DEBUG false // Отдалка функции MotorsControl
@@ -53,25 +53,25 @@
 #define GSERVO_R2_CCW_L_BOARD_PWM 500 // Левая граница ширины импульса вравщения против часовой geekservo R2
 #define GSERVO_R2_CCW_R_BOARD_PWM 1365 // Правая граница ширины импульса вращения против часовой geekservo R2
 
-#define GSERVO_L1_DIR_MODE false // Режим реверса вращения первого левого сервомотора
-#define GSERVO_L2_DIR_MODE false // Режим реверса вращения второго левого сервомотора
-#define GSERVO_R1_DIR_MODE true // Режим реверса вращения первого правого сервомотора
-#define GSERVO_R2_DIR_MODE true // Режим реверса вращения второго правого сервомотора
+#define GSERVO_L1_DIR_MODE true // Режим реверса вращения первого левого сервомотора
+#define GSERVO_L2_DIR_MODE true // Режим реверса вращения второго левого сервомотора
+#define GSERVO_R1_DIR_MODE false // Режим реверса вращения первого правого сервомотора
+#define GSERVO_R2_DIR_MODE false // Режим реверса вращения второго правого сервомотора
 
 #define LINE_S1_PIN A0 // Пин крайнего левого датчика линии
 #define LINE_S2_PIN A1 // Пин центрального левого датчика линии
 #define LINE_S3_PIN A2 // Пин центрального правого датчика
 #define LINE_S4_PIN A3 // Пин крайнего левого датчика
 
-#define RAW_REF_WHITE_LINE_S1 28 // Значение белого крайнего левого датчика линии
-#define RAW_REF_WHITE_LINE_S2 27 // Значение белого правого датчика линии
-#define RAW_REF_WHITE_LINE_S3 30 // Значение белого левого датчика линии
-#define RAW_REF_WHITE_LINE_S4 29 // Значение белого крайнего правого датчика линии
+#define RAW_REF_WHITE_LINE_S1 192 // Значение белого крайнего левого датчика линии
+#define RAW_REF_WHITE_LINE_S2 346 // Значение белого правого датчика линии
+#define RAW_REF_WHITE_LINE_S3 469 // Значение белого левого датчика линии
+#define RAW_REF_WHITE_LINE_S4 368 // Значение белого крайнего правого датчика линии
 
-#define RAW_REF_BLACK_LINE_S1 456 // Значение чёрного крайнего левого датчика линии
-#define RAW_REF_BLACK_LINE_S2 584 // Значение чёрного центральнего левого датчика линии
-#define RAW_REF_BLACK_LINE_S3 494 // Значение чёрного правого датчика линии
-#define RAW_REF_BLACK_LINE_S4 394 // Значение чёрного крайнего правого датчика линии
+#define RAW_REF_BLACK_LINE_S1 836 // Значение чёрного крайнего левого датчика линии
+#define RAW_REF_BLACK_LINE_S2 863 // Значение чёрного центральнего левого датчика линии
+#define RAW_REF_BLACK_LINE_S3 891 // Значение чёрного правого датчика линии
+#define RAW_REF_BLACK_LINE_S4 880 // Значение чёрного крайнего правого датчика линии
 
 #define COEFF_CENTRAL_LINE_SEN 1 // Коэффициент для центральных датчиков линии
 #define COEFF_SIDE_LINE_SEN 2.0 // Коэффицент усиления для крайних датчиков линии
@@ -79,7 +79,7 @@
 unsigned long currTime, prevTime, loopTime; // Время
 
 float Kp = 0.8, Ki = 0, Kd = 0; // Коэффиценты регулятора
-int speed = 100; // Инициализируем переменную скорости
+int speed = 80; // Инициализируем переменную скорости
 
 Servo l1ServoMot, l2ServoMot, r1ServoMot, r2ServoMot; // Инициализация объектов моторов
 EncButton<EB_TICK, RESET_BTN_PIN> btn; // Инициализация объекта простой кнопки
@@ -99,8 +99,8 @@ void setup() {
   regulatorTmr.setPeriodMode(); // Настроем режим условия регулирования на период
   l1ServoMot.attach(SERVO_L1_PIN); l2ServoMot.attach(SERVO_L2_PIN); // Подключение левых сервомоторов
   r1ServoMot.attach(SERVO_R1_PIN); r2ServoMot.attach(SERVO_R2_PIN); // Подключение правых сервомоторов
-  MotorsControl(0, 0, 0); // При старте моторы выключаем
-  regulator.setDirection(REVERSE); // Направление регулирования (NORMAL/REVERSE)
+  MotorsControl(0, 0); // При старте моторы выключаем
+  regulator.setDirection(NORMAL); // Направление регулирования (NORMAL/REVERSE)
   regulator.setLimits(-200, 200); // Пределы регулятора
   while (millis() < 500); // Время после старта для возможности запуска, защита от перезагрузки и старта кода сразу
   Serial.println("Ready... press btn");
@@ -146,7 +146,7 @@ void loop() {
     regulator.setDt(loopTime != 0 ? loopTime : 1); // Установка dt для регулятора
     float u = regulator.getResult(); // Управляющее воздействие с регулятора
 
-    if (ON_GSERVO_CONTROL) MotorsControl(u + U_CORRECT, speed, 0); // Для управления моторами регулятором
+    if (ON_GSERVO_CONTROL) MotorsControl(u + U_CORRECT, speed); // Для управления моторами регулятором
     
     // Запустить моторы для проверки
     if (ON_GSERVO_FOR_TEST) {
@@ -160,17 +160,11 @@ void loop() {
     
     // Для отладки значений серого
     if (PRINT_REF_RAW_LINE_SEN_DEBUG) {
-      Serial.print("rawRefLS1: " + String(rawRefLineS1) + "\t"); // Вывод сырых значений
-      Serial.print("rawRefLS2: " + String(rawRefLineS2) + "\t");
-      Serial.print("rawRefLS3: " + String(rawRefLineS3) + "\t");
-      Serial.println("rawRefLS4: " + String(rawRefLineS4));
+      Serial.println("rawRefLS: " + String(rawRefLineS1) + ", " + String(rawRefLineS2) + ", " + String(rawRefLineS3) + ", " + String(rawRefLineS4)); // Вывод сырых значений
     }
     // Для отладки обработанных значений с датчика
     if (PRINT_REF_LINE_SEN_DEBUG) {
-      Serial.print("refLS1: " + String(refLineS1) + "\t"); // Вывод обработанных значений
-      Serial.print("refLS2: " + String(refLineS2) + "\t");
-      Serial.print("refLS3: " + String(refLineS3) + "\t");
-      Serial.println("refLS4: " + String(refLineS4));
+      Serial.println("refLS: " + String(refLineS1) + ", " + String(refLineS2) + ", " + String(refLineS3) + ", " + String(refLineS4)); // Вывод обработанных значений
     }
     // Для отладки основной информации о регулировании
     if (PRINT_DT_ERR_U_DEBUG) {
@@ -182,7 +176,7 @@ void loop() {
 }
 
 // Управление двумя моторами
-void MotorsControl(int dir, int speed, int executionTimeMs) {
+void MotorsControl(int dir, int speed) {
   int lServoMotorsSpeed = speed + dir, rServoMotorsSpeed = speed - dir;
   float z = (float) speed / max(abs(lServoMotorsSpeed), abs(rServoMotorsSpeed)); // Вычисляем отношение желаемой мощности к наибольшей фактической
   lServoMotorsSpeed *= z, rServoMotorsSpeed *= z;
@@ -194,7 +188,6 @@ void MotorsControl(int dir, int speed, int executionTimeMs) {
   MotorSpeed(l2ServoMot, lServoMotorsSpeed, GSERVO_L2_DIR_MODE, GSERVO_L2_CW_L_BOARD_PWM, GSERVO_L2_CW_R_BOARD_PWM, GSERVO_L2_CCW_L_BOARD_PWM, GSERVO_L2_CCW_R_BOARD_PWM);
   if (MOTORS_CONTROL_FUNC_DEBUG) Serial.print("r2ServoMot ->\t");
   MotorSpeed(r2ServoMot, rServoMotorsSpeed, GSERVO_R2_DIR_MODE, GSERVO_R2_CW_L_BOARD_PWM, GSERVO_R2_CW_R_BOARD_PWM, GSERVO_R2_CCW_L_BOARD_PWM, GSERVO_R2_CCW_R_BOARD_PWM);
-  delay(executionTimeMs); // https://arduino.stackexchange.com/questions/86542/what-does-a-delay0-actually-do
 }
 
 // Управление серво мотором
