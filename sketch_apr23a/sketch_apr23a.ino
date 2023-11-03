@@ -225,7 +225,7 @@ void ParseSerialInputValues() {
     // Встроенная функция readStringUntil будет читать все данные, пришедшие в UART до специального символа — '\n' (перенос строки).
     // Он появляется в паре с '\r' (возврат каретки) при передаче данных функцией Serial.println().
     // Эти символы удобно передавать для разделения команд, но не очень удобно обрабатывать. Удаляем их функцией trim().
-    String inputStr = Serial.readStringUntil('\n');    
+    String inputStr = Serial.readStringUntil('\n');
     inputStr.trim();
     inputStr.replace(" ", ""); // Убрать возможные пробелы между символами
     byte strIndex = inputStr.length(); // Переменая для хронения индекса вхождения цифры в входной строке, изначально равна размеру строки
